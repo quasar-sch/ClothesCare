@@ -340,6 +340,9 @@
       <div id="habitText" style="margin-bottom:6px;"></div>
       <div id="habitOptions" class="btn-row"></div>
       <div id="habitFeedback" class="feedback"></div>
+      <div id="habitNextRow" class="btn-row" style="margin-top:10px; display:none;">
+        <button class="btn-primary btn-small" onclick="goToNextHabit()">다음 상황으로 ▶</button>
+      </div>
     </div>
 
     <div class="score-summary">
@@ -539,6 +542,7 @@
   let habitIndex = 0;
   let habitScore = 0;
   let habitAnsweredCount = 0;
+  let habitAnsweredCurrent = false;
 
   // 2단계: 퀴즈 데이터
   const quizQuestions = [
@@ -655,22 +659,36 @@
   // ===== 1단계: 습관 체크 =====
   function renderHabitSituation() {
     const situation = habitSituations[habitIndex];
+    habitAnsweredCurrent = false;
+
     document.getElementById("habitIndexLabel").innerText =
       `상황 ${habitIndex + 1} / ${habitSituations.length}`;
     document.getElementById("habitText").innerText = situation.text;
 
     const optionsDiv = document.getElementById("habitOptions");
     optionsDiv.innerHTML = "";
-    situation.options.forEach((opt, idx) => {
+
+    // 정답 위치 섞기: 옵션 인덱스 배열을 셔플
+    const indices = situation.options.map((_, idx) => idx);
+    for (let i = indices.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [indices[i], indices[j]] = [indices[j], indices[i]];
+    }
+
+    indices.forEach(origIdx => {
+      const opt = situation.options[origIdx];
       const btn = document.createElement("button");
       btn.className = "btn-outline";
       btn.innerText = opt.label;
-      btn.onclick = () => selectHabitOption(idx);
+      btn.onclick = () => selectHabitOption(origIdx);
       optionsDiv.appendChild(btn);
     });
 
     document.getElementById("habitFeedback").innerText = "";
     document.getElementById("habitFeedback").className = "feedback";
+
+    const nextRow = document.getElementById("habitNextRow");
+    if (nextRow) nextRow.style.display = "none";
 
     document.getElementById("habitScoreDisplay").innerText = habitScore + "점";
     document.getElementById("habitProgressDisplay").innerText =
@@ -678,11 +696,14 @@
   }
 
   function selectHabitOption(optionIndex) {
+    if (habitAnsweredCurrent) return; // 이미 답한 문제는 무시
+
     const situation = habitSituations[habitIndex];
     const chosen = situation.options[optionIndex];
 
     habitScore += chosen.score;
     habitAnsweredCount += 1;
+    habitAnsweredCurrent = true;
 
     const feedbackEl = document.getElementById("habitFeedback");
     feedbackEl.innerText = chosen.feedback;
@@ -692,11 +713,21 @@
     document.getElementById("habitProgressDisplay").innerText =
       habitAnsweredCount + " / " + habitSituations.length;
 
+    // 선택 후 버튼 비활성화
+    const buttons = document.querySelectorAll("#habitOptions button");
+    buttons.forEach(b => b.disabled = true);
+
+    // 마지막 문제가 아니라면 '다음 상황으로' 버튼 보이기
     if (habitIndex < habitSituations.length - 1) {
-      setTimeout(() => {
-        habitIndex += 1;
-        renderHabitSituation();
-      }, 700);
+      const nextRow = document.getElementById("habitNextRow");
+      if (nextRow) nextRow.style.display = "flex";
+    }
+  }
+
+  function goToNextHabit() {
+    if (habitIndex < habitSituations.length - 1) {
+      habitIndex += 1;
+      renderHabitSituation();
     }
   }
 
@@ -704,6 +735,7 @@
     habitIndex = 0;
     habitScore = 0;
     habitAnsweredCount = 0;
+    habitAnsweredCurrent = false;
     renderHabitSituation();
   }
 
@@ -999,6 +1031,7 @@
     habitIndex = 0;
     habitScore = 0;
     habitAnsweredCount = 0;
+    habitAnsweredCurrent = false;
     quizAnswers = new Array(quizQuestions.length).fill(null);
     quizScore = 0;
     practiceScore = 0;
