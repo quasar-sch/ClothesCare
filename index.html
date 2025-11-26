@@ -468,7 +468,7 @@
     <div class="card">
       <h3 style="font-size:1.05rem;">앞으로의 옷 관리 다짐</h3>
       <p style="font-size:0.9rem;">내가 앞으로 실천하고 싶은 옷 관리 다짐을 1~2문장으로 써 보세요.</p>
-      <textarea id="pledgeText" class="report-textarea" placeholder="예) 나는 세탁한 옷을 바로 널고, 계절 지난 옷은 따로 정리하겠다."></textarea>
+      <textarea id="pledgeText" class="report-textarea" placeholder="예) 나는 세탁한 옷을 바로 널고, 계절 지난 옷은 한 번에 정리하겠다."></textarea>
       <button class="btn-outline btn-small" style="margin-top:8px;" onclick="updateFinalReport()">다짐을 리포트에 반영하기</button>
     </div>
 
@@ -493,7 +493,7 @@
   let currentStep = 0; // 0~4
   const totalSteps = 4;
 
-  // 1단계: 습관 체크 데이터
+  // 1단계: 습관 체크 데이터 (9문항)
   const habitSituations = [
     {
       text: "집에 돌아와서 벗은 양말이 뒤집혀 있고 돌돌 말려 있어요.",
@@ -536,6 +536,27 @@
         { label: "옷을 개거나 걸어서 옷장/서랍에 정리한다.", score: 1, feedback: "정리까지 잘 해 두면 다음에 입기 정말 편해요.", good: true },
         { label: "건조대에 계속 걸어 두고 필요할 때만 가져온다.", score: -1, feedback: "그렇게 두면 방이 지저분해지고, 필요한 옷을 찾기 어려울 수 있어요.", good: false }
       ]
+    },
+    {
+      text: "계절이 완전히 바뀌었는데, 겨울옷이 아직 옷장 앞쪽에 가득 차 있어요.",
+      options: [
+        { label: "계절 지난 옷은 한 번에 정리해서 보관함이나 위쪽 칸에 넣는다.", score: 1, feedback: "좋은 생각이에요! 필요한 계절 옷을 찾기 쉬워지고 공간도 넓어져요.", good: true },
+        { label: "그냥 둔다. 필요할 때마다 꺼내 입으면 된다고 생각한다.", score: -1, feedback: "그렇게 두면 옷장이 금방 어지럽고, 필요한 옷을 찾기 어려워요.", good: false }
+      ]
+    },
+    {
+      text: "옷장과 서랍이 너무 꽉 차서 옷이 구겨지고 문이 잘 안 닫혀요.",
+      options: [
+        { label: "잘 안 입는 옷은 정리하거나 기부/재활용할 것을 고른다.", score: 1, feedback: "아주 좋아요! 자원도 아끼고, 옷장도 훨씬 쓰기 편해져요.", good: true },
+        { label: "힘으로 밀어 넣어서 억지로 닫는다.", score: -1, feedback: "그렇게 하면 옷이 더 구겨지고 망가질 수 있어요. 옷 수를 줄이거나 정리하는 게 좋아요.", good: false }
+      ]
+    },
+    {
+      text: "비가 오는 날 젖은 우산과 젖은 겉옷을 들고 집에 들어왔어요.",
+      options: [
+        { label: "겉옷은 먼저 말리고, 완전히 마른 뒤에 옷장에 넣는다.", score: 1, feedback: "좋은 선택이에요! 젖은 상태로 넣으면 냄새도 나고 곰팡이가 생기기 쉬워요.", good: true },
+        { label: "젖어 있어도 귀찮아서 바로 옷장 안에 넣는다.", score: -1, feedback: "젖은 옷을 바로 보관하면 냄새와 곰팡이가 생길 수 있어요. 꼭 말린 뒤에 넣어야 해요.", good: false }
+      ]
     }
   ];
 
@@ -544,7 +565,7 @@
   let habitAnsweredCount = 0;
   let habitAnsweredCurrent = false;
 
-  // 2단계: 퀴즈 데이터
+  // 2단계: 퀴즈 데이터 (5문항)
   const quizQuestions = [
     {
       text: "다음 중 <strong>환경에 가장 부담을 덜 주는 행동</strong>은 무엇인가요?",
@@ -575,13 +596,33 @@
         "나만 불편할 뿐 다른 문제는 없다."
       ],
       correctIndex: 0
+    },
+    {
+      text: "세탁하기 전에 옷을 색깔별로 나누어 세탁하는 <strong>가장 알맞은 이유</strong>는 무엇인가요?",
+      options: [
+        "보기 좋게 보이려고 색을 맞추는 것이다.",
+        "색이 섞이면 흰 옷에 물이 들 수 있기 때문이다.",
+        "세탁기가 색깔을 더 좋아하기 때문이다.",
+        "세탁 시간이 조금 더 길어지기 때문이다."
+      ],
+      correctIndex: 1
+    },
+    {
+      text: "옷을 잘 말리지 않고 서둘러 옷장에 넣으면 생길 수 있는 문제는?",
+      options: [
+        "옷이 더 튼튼해진다.",
+        "옷 색깔이 자동으로 예뻐진다.",
+        "냄새와 곰팡이가 생길 수 있다.",
+        "아무 문제 없이 더 깨끗해진다."
+      ],
+      correctIndex: 2
     }
   ];
 
   let quizAnswers = new Array(quizQuestions.length).fill(null);
   let quizScore = 0;
 
-  // 3단계: 실천 시뮬 데이터
+  // 3단계: 실천 시뮬 데이터 (상태 6개, 보관 6개)
   const stateItems = [
     {
       id: "whiteShirt",
@@ -602,6 +643,16 @@
       id: "socks",
       text: "양말 한 켤레 (오랫동안 신고 있었음)",
       correctState: "세탁 필요"
+    },
+    {
+      id: "sportsWear",
+      text: "체육 시간에 땀을 많이 흘리며 입었던 체육복",
+      correctState: "세탁 필요"
+    },
+    {
+      id: "tshirt",
+      text: "면 티셔츠 (집에서 반나절 정도만 입고 벗음, 특별한 냄새 없음)",
+      correctState: "보관 가능"
     }
   ];
 
@@ -625,6 +676,16 @@
       id: "coatStorage",
       text: "겨울에 입던 두꺼운 외투(지금은 여름)",
       correctStorage: "계절 지난 옷 전용 보관함에 넣기"
+    },
+    {
+      id: "hatStorage",
+      text: "모자와 목도리",
+      correctStorage: "칸이 나뉜 서랍/작은 상자에 넣기"
+    },
+    {
+      id: "fancyDressStorage",
+      text: "발표회 때 입는 정장/원피스 (자주 입지 않음, 잘 구겨짐)",
+      correctStorage: "옷걸이에 걸기"
     }
   ];
 
@@ -707,7 +768,7 @@
 
     const feedbackEl = document.getElementById("habitFeedback");
     feedbackEl.innerText = chosen.feedback;
-    feedbackEl.className = "feedback " + (chosen.good ? "good" : "bad");
+    feedbackEl.className = "feedback " + (chosen.good ? "good" : "bad";
 
     document.getElementById("habitScoreDisplay").innerText = habitScore + "점";
     document.getElementById("habitProgressDisplay").innerText =
@@ -787,20 +848,27 @@
     });
   }
 
-  function gradeQuiz() {
+  function computeQuizScore() {
     let score = 0;
+    quizQuestions.forEach((q, index) => {
+      if (quizAnswers[index] === q.correctIndex) {
+        score++;
+      }
+    });
+    quizScore = score;
+    return score;
+  }
+
+  function gradeQuiz() {
+    let score = computeQuizScore();
     let answeredCount = 0;
 
     quizQuestions.forEach((q, index) => {
       if (quizAnswers[index] !== null) {
         answeredCount++;
-        if (quizAnswers[index] === q.correctIndex) {
-          score++;
-        }
       }
     });
 
-    quizScore = score;
     const resultEl = document.getElementById("quizResult");
 
     if (answeredCount < quizQuestions.length) {
@@ -936,6 +1004,9 @@
 
   // ===== 4단계: 리포트 =====
   function generateSummary() {
+    // 퀴즈 점수 자동 재계산 (채점 버튼 안눌러도 반영)
+    computeQuizScore();
+
     document.getElementById("summaryHabitScore").innerText = habitScore + "점";
     document.getElementById("summaryQuizScore").innerText = quizScore + "점";
     const maxPractice = stateItems.length + storageItems.length;
@@ -948,9 +1019,9 @@
   }
 
   function getHabitComment() {
-    if (habitScore >= 4) {
-      return "세탁 바구니에 잘 넣고, 세탁 전 상태를 살피는 등 옷 관리를 잘 실천하고 있습니다.";
-    } else if (habitScore >= 1) {
+    if (habitScore >= 6) {
+      return "세탁 바구니에 잘 넣고, 세탁 전 상태를 살피며, 계절에 따라 옷을 정리하는 등 옷 관리를 잘 실천하고 있습니다.";
+    } else if (habitScore >= 2) {
       return "옷 관리를 위해 어느 정도 노력하고 있지만, 가끔은 미루거나 아무 데나 두는 습관도 있습니다.";
     } else {
       return "옷을 벗은 뒤 아무 데나 두거나 세탁을 자주 미루는 등 개선이 필요한 부분이 있습니다.";
@@ -960,7 +1031,7 @@
   function getQuizComment() {
     const total = quizQuestions.length;
     if (quizScore === total) {
-      return "옷이 자원과 환경에 어떤 영향을 주는지 잘 이해하고 있습니다.";
+      return "옷이 자원과 환경, 위생에 어떤 영향을 주는지 잘 이해하고 있습니다.";
     } else if (quizScore >= Math.floor(total / 2)) {
       return "옷 관리와 자원·환경의 관계를 어느 정도 이해하고 있지만, 일부 개념은 다시 확인할 필요가 있습니다.";
     } else {
