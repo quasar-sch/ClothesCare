@@ -1,0 +1,1056 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <title>옷 관리 종합 시뮬레이터</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <style>
+    * {
+      box-sizing: border-box;
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    }
+
+    body {
+      margin: 0;
+      background: #f5f5f7;
+      color: #222;
+      display: flex;
+      justify-content: center;
+      padding: 20px;
+    }
+
+    .app {
+      width: 100%;
+      max-width: 900px;
+      background: #ffffff;
+      border-radius: 16px;
+      box-shadow: 0 12px 30px rgba(0,0,0,0.08);
+      padding: 24px 24px 32px;
+    }
+
+    h1, h2, h3 {
+      margin: 0 0 12px;
+    }
+
+    h1 {
+      font-size: 1.8rem;
+    }
+
+    h2 {
+      font-size: 1.4rem;
+      margin-top: 8px;
+    }
+
+    p {
+      margin: 4px 0 10px;
+      line-height: 1.6;
+    }
+
+    .badge {
+      display: inline-block;
+      font-size: 0.75rem;
+      padding: 4px 10px;
+      border-radius: 999px;
+      background: #e5f0ff;
+      color: #2459c9;
+      margin-bottom: 4px;
+    }
+
+    .progress-bar {
+      margin: 16px 0 20px;
+      background: #e5e5ec;
+      border-radius: 999px;
+      height: 10px;
+      overflow: hidden;
+    }
+
+    .progress-bar-inner {
+      height: 100%;
+      width: 0;
+      background: linear-gradient(90deg, #4f46e5, #22c55e);
+      transition: width 0.3s ease;
+    }
+
+    .screen {
+      display: none;
+    }
+
+    .screen.active {
+      display: block;
+    }
+
+    .card {
+      background: #f9fafb;
+      border-radius: 12px;
+      padding: 16px 18px;
+      margin-bottom: 14px;
+      border: 1px solid #e5e7eb;
+    }
+
+    .btn-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-top: 12px;
+    }
+
+    button {
+      border: none;
+      cursor: pointer;
+      border-radius: 999px;
+      padding: 8px 18px;
+      font-size: 0.95rem;
+      transition: transform 0.05s ease, box-shadow 0.1s ease, background 0.15s ease;
+    }
+
+    button:active {
+      transform: translateY(1px);
+      box-shadow: none;
+    }
+
+    .btn-primary {
+      background: #4f46e5;
+      color: #fff;
+      box-shadow: 0 4px 10px rgba(79,70,229,0.3);
+    }
+
+    .btn-primary:hover {
+      background: #4338ca;
+    }
+
+    .btn-secondary {
+      background: #e5e7eb;
+      color: #111827;
+    }
+
+    .btn-outline {
+      background: #ffffff;
+      color: #4b5563;
+      border-radius: 999px;
+      border: 1px solid #d1d5db;
+    }
+
+    .btn-small {
+      padding: 5px 13px;
+      font-size: 0.85rem;
+    }
+
+    .situation-index {
+      font-size: 0.8rem;
+      color: #6b7280;
+      margin-bottom: 4px;
+    }
+
+    .feedback {
+      margin-top: 8px;
+      font-size: 0.9rem;
+    }
+
+    .feedback.good {
+      color: #15803d;
+    }
+    .feedback.bad {
+      color: #b91c1c;
+    }
+
+    .pill {
+      display: inline-block;
+      padding: 2px 8px;
+      border-radius: 999px;
+      font-size: 0.75rem;
+      background: #eef2ff;
+      color: #4338ca;
+      margin-right: 4px;
+    }
+
+    .quiz-question {
+      margin-bottom: 10px;
+      font-weight: 600;
+    }
+
+    .quiz-options label {
+      display: block;
+      margin-bottom: 4px;
+      font-size: 0.95rem;
+      cursor: pointer;
+    }
+
+    .quiz-result {
+      margin-top: 10px;
+      font-size: 0.95rem;
+    }
+
+    .quiz-correct {
+      color: #15803d;
+    }
+    .quiz-wrong {
+      color: #b91c1c;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 6px;
+      font-size: 0.9rem;
+    }
+
+    th, td {
+      border: 1px solid #e5e7eb;
+      padding: 6px 8px;
+      text-align: left;
+    }
+
+    th {
+      background: #f3f4f6;
+      font-weight: 600;
+    }
+
+    select {
+      width: 100%;
+      padding: 4px 6px;
+      border-radius: 6px;
+      border: 1px solid #d1d5db;
+      font-size: 0.85rem;
+      background: #ffffff;
+    }
+
+    .score-summary {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+      gap: 10px;
+      margin-top: 10px;
+    }
+
+    .score-box {
+      border-radius: 12px;
+      padding: 12px;
+      background: #eef2ff;
+    }
+
+    .score-box h4 {
+      margin: 0 0 4px;
+      font-size: 0.9rem;
+    }
+
+    .score-box .value {
+      font-size: 1.2rem;
+      font-weight: 700;
+    }
+
+    .report-textarea {
+      width: 100%;
+      min-height: 90px;
+      padding: 8px;
+      border-radius: 8px;
+      border: 1px solid #d1d5db;
+      font-size: 0.9rem;
+      resize: vertical;
+      margin-top: 6px;
+    }
+
+    .report-block {
+      background: #f9fafb;
+      border-radius: 12px;
+      padding: 12px 14px;
+      margin-top: 10px;
+      border: 1px solid #e5e7eb;
+      font-size: 0.9rem;
+      white-space: pre-line;
+    }
+
+    .step-nav {
+      display: flex;
+      justify-content: space-between;
+      margin-top: 18px;
+      gap: 8px;
+    }
+
+    .step-nav-right {
+      margin-left: auto;
+      display: flex;
+      gap: 8px;
+    }
+
+    .tagline {
+      font-size: 0.9rem;
+      color: #6b7280;
+    }
+
+    @media (max-width: 600px) {
+      .app {
+        padding: 18px 16px 24px;
+        border-radius: 12px;
+      }
+      button {
+        width: 100%;
+        text-align: center;
+        justify-content: center;
+      }
+      .step-nav {
+        flex-direction: column;
+      }
+      .step-nav-right {
+        width: 100%;
+        justify-content: flex-end;
+      }
+    }
+  </style>
+</head>
+<body>
+<div class="app">
+  <div class="badge">5학년 실과 · 자원관리와 자립</div>
+  <h1>옷 관리 종합 시뮬레이터</h1>
+  <p class="tagline">옷의 종류와 용도에 맞게 정리·보관하는 방법을 알고, 나의 습관까지 점검해 보는 활동입니다.</p>
+
+  <div class="progress-bar">
+    <div class="progress-bar-inner" id="progressBar"></div>
+  </div>
+
+  <!-- 화면 0: 시작 -->
+  <div class="screen active" id="screen-welcome">
+    <h2>시작하기 전에</h2>
+    <div class="card">
+      <p>이 프로그램에서는 다음 내용을 한 번에 연습합니다.</p>
+      <ul style="margin-top:4px; padding-left:18px; font-size:0.95rem;">
+        <li>내가 평소에 옷을 어떻게 관리하는지 되돌아보기</li>
+        <li>옷을 잘 관리해야 하는 이유(위생·자원·환경) 이해하기</li>
+        <li>옷의 종류와 용도에 맞게 정리·보관하는 연습하기</li>
+        <li>앞으로의 옷 관리 다짐 세우기</li>
+      </ul>
+      <p style="margin-top:10px; font-size:0.9rem; color:#4b5563;">
+        마지막에는 <strong>“나의 옷 관리 리포트”</strong>가 자동으로 만들어져요.
+      </p>
+    </div>
+
+    <div class="step-nav">
+      <div></div>
+      <div class="step-nav-right">
+        <button class="btn-primary" onclick="goToStep(1)">시작하기 ▶</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 화면 1: 나의 옷 관리 습관 체크 -->
+  <div class="screen" id="screen-step1">
+    <h2>1단계 · 나의 옷 관리 습관 체크</h2>
+    <p>상황을 읽고, 평소 나의 행동과 가장 비슷한 선택을 눌러 주세요.</p>
+
+    <div class="card" id="habitCard">
+      <div class="situation-index" id="habitIndexLabel"></div>
+      <div id="habitText" style="margin-bottom:6px;"></div>
+      <div id="habitOptions" class="btn-row"></div>
+      <div id="habitFeedback" class="feedback"></div>
+    </div>
+
+    <div class="score-summary">
+      <div class="score-box">
+        <h4>현재 습관 점수</h4>
+        <div class="value" id="habitScoreDisplay">0점</div>
+        <div style="font-size:0.8rem; color:#4b5563;">점수가 높을수록 옷 관리를 잘하고 있다는 뜻이에요.</div>
+      </div>
+      <div class="score-box">
+        <h4>진행 상황</h4>
+        <div class="value" id="habitProgressDisplay">0 / 0</div>
+        <div style="font-size:0.8rem; color:#4b5563;">모든 상황을 답하면 다음 단계로 넘어갈 수 있어요.</div>
+      </div>
+    </div>
+
+    <div class="step-nav">
+      <button class="btn-secondary btn-small" onclick="goToStep(0)">◀ 처음으로</button>
+      <div class="step-nav-right">
+        <button class="btn-outline btn-small" onclick="resetHabits()">다시 선택하기</button>
+        <button class="btn-primary btn-small" onclick="goFromStep1ToNext()">2단계로 이동 ▶</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 화면 2: 중요성 이해 퀴즈 -->
+  <div class="screen" id="screen-step2">
+    <h2>2단계 · 옷 관리의 중요성 이해 퀴즈</h2>
+    <p>옷을 왜 잘 관리해야 하는지에 대한 문제입니다. 가장 알맞은 답을 골라 보세요.</p>
+
+    <div id="quizContainer"></div>
+
+    <div class="quiz-result" id="quizResult"></div>
+
+    <div class="step-nav">
+      <button class="btn-secondary btn-small" onclick="goToStep(1)">◀ 1단계로</button>
+      <div class="step-nav-right">
+        <button class="btn-outline btn-small" onclick="gradeQuiz()">채점하기</button>
+        <button class="btn-primary btn-small" onclick="goFromStep2ToNext()">3단계로 이동 ▶</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 화면 3: 옷 정리·보관 시뮬레이션 -->
+  <div class="screen" id="screen-step3">
+    <h2>3단계 · 옷 정리·보관 시뮬레이션</h2>
+    <p>옷 상태에 따라 세탁/보관을 판단하고, 알맞은 보관 방법을 선택해 보세요.</p>
+
+    <div class="card">
+      <div class="pill">① 옷 상태 살펴보기</div>
+      <p style="margin-top:6px; font-size:0.9rem;">
+        각각의 옷에 대해 <strong>세탁이 필요한지, 그냥 보관해도 되는지, 수선이 필요한지</strong> 선택해 보세요.
+      </p>
+      <table>
+        <thead>
+        <tr>
+          <th style="width:33%;">옷 설명</th>
+          <th style="width:33%;">상태 판단</th>
+          <th style="width:34%;">(선택)</th>
+        </tr>
+        </thead>
+        <tbody id="stateTableBody"></tbody>
+      </table>
+    </div>
+
+    <div class="card">
+      <div class="pill">② 옷 보관 방법 선택</div>
+      <p style="margin-top:6px; font-size:0.9rem;">
+        옷의 <strong>종류와 용도, 잘 구겨지는지 여부</strong>를 생각하며 알맞은 보관 방법을 고르세요.
+      </p>
+      <table>
+        <thead>
+        <tr>
+          <th style="width:33%;">옷 설명</th>
+          <th style="width:33%;">보관 방법 선택</th>
+          <th style="width:34%;">(선택)</th>
+        </tr>
+        </thead>
+        <tbody id="storageTableBody"></tbody>
+      </table>
+    </div>
+
+    <div class="score-summary">
+      <div class="score-box">
+        <h4>실천 점수</h4>
+        <div class="value" id="practiceScoreDisplay">0점</div>
+        <div style="font-size:0.8rem; color:#4b5563;">옷 상태 판단 + 보관 방법 선택 결과입니다.</div>
+      </div>
+      <div class="score-box">
+        <h4>피드백</h4>
+        <div id="practiceFeedback" style="font-size:0.85rem; color:#4b5563;">
+          <em>아직 채점하지 않았어요.</em>
+        </div>
+      </div>
+    </div>
+
+    <div class="step-nav">
+      <button class="btn-secondary btn-small" onclick="goToStep(2)">◀ 2단계로</button>
+      <div class="step-nav-right">
+        <button class="btn-outline btn-small" onclick="gradePractice()">채점하기</button>
+        <button class="btn-primary btn-small" onclick="goFromStep3ToNext()">4단계로 이동 ▶</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 화면 4: 리포트 -->
+  <div class="screen" id="screen-step4">
+    <h2>4단계 · 나의 옷 관리 리포트</h2>
+    <p>지금까지의 결과를 바탕으로 자동으로 리포트를 만들어 드립니다.</p>
+
+    <div class="score-summary">
+      <div class="score-box">
+        <h4>습관 점수</h4>
+        <div class="value" id="summaryHabitScore">0점</div>
+      </div>
+      <div class="score-box">
+        <h4>이해 점수</h4>
+        <div class="value" id="summaryQuizScore">0점</div>
+      </div>
+      <div class="score-box">
+        <h4>실천 점수</h4>
+        <div class="value" id="summaryPracticeScore">0점</div>
+      </div>
+    </div>
+
+    <div class="card">
+      <h3 style="font-size:1.05rem;">자동 생성 리포트</h3>
+      <div id="autoReport" class="report-block"></div>
+    </div>
+
+    <div class="card">
+      <h3 style="font-size:1.05rem;">앞으로의 옷 관리 다짐</h3>
+      <p style="font-size:0.9rem;">내가 앞으로 실천하고 싶은 옷 관리 다짐을 1~2문장으로 써 보세요.</p>
+      <textarea id="pledgeText" class="report-textarea" placeholder="예) 나는 세탁한 옷을 바로 널고, 계절 지난 옷은 따로 정리하겠다."></textarea>
+      <button class="btn-outline btn-small" style="margin-top:8px;" onclick="updateFinalReport()">다짐을 리포트에 반영하기</button>
+    </div>
+
+    <div class="card">
+      <h3 style="font-size:1.05rem;">리포트 전체 내용</h3>
+      <div id="finalReport" class="report-block"></div>
+      <button class="btn-primary btn-small" style="margin-top:8px;" onclick="copyReport()">리포트 텍스트 복사하기</button>
+      <div id="copyMessage" style="margin-top:4px; font-size:0.8rem; color:#16a34a;"></div>
+    </div>
+
+    <div class="step-nav">
+      <button class="btn-secondary btn-small" onclick="goToStep(3)">◀ 3단계로</button>
+      <div class="step-nav-right">
+        <button class="btn-outline btn-small" onclick="restartAll()">처음부터 다시하기</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  // ===== 전역 상태 =====
+  let currentStep = 0; // 0~4
+  const totalSteps = 4;
+
+  // 1단계: 습관 체크 데이터
+  const habitSituations = [
+    {
+      text: "집에 돌아와서 벗은 양말이 뒤집혀 있고 돌돌 말려 있어요.",
+      options: [
+        { label: "양말을 잘 펴서 세탁 바구니에 넣는다.", score: 1, feedback: "좋아요! 세탁 전에 양말을 펴 두면 더 깨끗하게 빨 수 있어요.", good: true },
+        { label: "그냥 바닥이나 방 구석에 둔다.", score: -1, feedback: "그냥 두면 냄새와 세균이 생기기 쉬워요. 세탁 바구니로 가는 습관을 들여 보세요.", good: false }
+      ]
+    },
+    {
+      text: "학교에서 돌아와서 교복이나 체육복을 벗었어요.",
+      options: [
+        { label: "걸어 두거나 세탁이 필요하면 바로 세탁 바구니에 넣는다.", score: 1, feedback: "아주 좋아요! 다음에 입기 편하고 구김도 줄일 수 있어요.", good: true },
+        { label: "의자나 침대 위에 아무렇게나 올려 둔다.", score: -1, feedback: "그렇게 두면 구겨지고 먼지가 묻기 쉬워요. 제자리를 정해 두면 좋아요.", good: false }
+      ]
+    },
+    {
+      text: "세탁을 하려고 보니 세탁 바구니에 옷이 많이 쌓여 있어요.",
+      options: [
+        { label: "옷 상태와 색깔을 살펴본 뒤, 한꺼번에 세탁한다.", score: 1, feedback: "옷 상태와 색깔을 나눠 보는 좋은 습관이에요.", good: true },
+        { label: "귀찮으니 그냥 내일로 미룬다.", score: -1, feedback: "계속 미루면 옷이 더 더러워지고 냄새도 날 수 있어요.", good: false }
+      ]
+    },
+    {
+      text: "세탁기에 넣기 전에 옷 주머니에 물건이 들어 있을 수 있어요.",
+      options: [
+        { label: "세탁 전에 주머니를 꼭 확인한다.", score: 1, feedback: "좋은 습관이에요! 휴지나 동전이 들어 있으면 옷이 망가질 수 있어요.", good: true },
+        { label: "대충 넣고, 나중에 망가져 있으면 어쩔 수 없다고 생각한다.", score: -1, feedback: "주머니를 확인하지 않으면 옷이나 세탁기가 망가질 수 있어요.", good: false }
+      ]
+    },
+    {
+      text: "세탁이 끝난 옷을 어떻게 하나요?",
+      options: [
+        { label: "바로 건조대나 빨랫줄에 널어 놓는다.", score: 1, feedback: "아주 좋아요! 바로 널면 냄새도 줄고 구김도 덜해요.", good: true },
+        { label: "세탁기 안에 그냥 두었다가 나중에 꺼낸다.", score: -1, feedback: "세탁기 안에 오래 두면 냄새가 나고 위생에도 좋지 않아요.", good: false }
+      ]
+    },
+    {
+      text: "마른 옷을 어떻게 정리하나요?",
+      options: [
+        { label: "옷을 개거나 걸어서 옷장/서랍에 정리한다.", score: 1, feedback: "정리까지 잘 해 두면 다음에 입기 정말 편해요.", good: true },
+        { label: "건조대에 계속 걸어 두고 필요할 때만 가져온다.", score: -1, feedback: "그렇게 두면 방이 지저분해지고, 필요한 옷을 찾기 어려울 수 있어요.", good: false }
+      ]
+    }
+  ];
+
+  let habitIndex = 0;
+  let habitScore = 0;
+  let habitAnsweredCount = 0;
+
+  // 2단계: 퀴즈 데이터
+  const quizQuestions = [
+    {
+      text: "다음 중 <strong>환경에 가장 부담을 덜 주는 행동</strong>은 무엇인가요?",
+      options: [
+        "매달 새 옷을 계속 사서 자주 버린다.",
+        "옷을 오래 입을 수 있도록 관리해서 오래 사용한다.",
+        "옷이 조금 더러워지면 바로 버리고 새로 산다.",
+        "세탁은 전혀 하지 않고 아무렇게나 둔다."
+      ],
+      correctIndex: 1
+    },
+    {
+      text: "옷을 잘 관리해야 하는 이유로 <strong>옳지 않은 것</strong>은?",
+      options: [
+        "나의 위생과 건강을 지키기 위해서이다.",
+        "옷을 오래 입어 자원을 아끼기 위해서이다.",
+        "환경 오염을 줄이는 데 도움이 되기 때문이다.",
+        "새 옷을 자주 사서 쓰레기를 많이 만들기 위해서이다."
+      ],
+      correctIndex: 3
+    },
+    {
+      text: "새 옷을 자주 사고, 옷을 잘 관리하지 않아 금방 버리면 어떻게 될까요?",
+      options: [
+        "쓰레기가 늘어나고 자원이 낭비된다.",
+        "환경에 전혀 영향을 주지 않는다.",
+        "지구가 스스로 깨끗하게 정리해 준다.",
+        "나만 불편할 뿐 다른 문제는 없다."
+      ],
+      correctIndex: 0
+    }
+  ];
+
+  let quizAnswers = new Array(quizQuestions.length).fill(null);
+  let quizScore = 0;
+
+  // 3단계: 실천 시뮬 데이터
+  const stateItems = [
+    {
+      id: "whiteShirt",
+      text: "흰색 셔츠 (소매에 얼룩이 있음)",
+      correctState: "세탁 필요"
+    },
+    {
+      id: "jeans",
+      text: "진한 청바지 (겉으로는 깨끗해 보임, 하루 입음)",
+      correctState: "세탁 필요"
+    },
+    {
+      id: "sweater",
+      text: "니트 스웨터 (두세 번 입었고, 특별한 얼룩 없음)",
+      correctState: "보관 가능"
+    },
+    {
+      id: "socks",
+      text: "양말 한 켤레 (오랫동안 신고 있었음)",
+      correctState: "세탁 필요"
+    }
+  ];
+
+  const storageItems = [
+    {
+      id: "shirtStorage",
+      text: "흰색 셔츠 / 교복 셔츠 (잘 구겨지는 옷)",
+      correctStorage: "옷걸이에 걸기"
+    },
+    {
+      id: "tshirtStorage",
+      text: "면 티셔츠 / 후드티 (잘 구겨지지 않는 옷)",
+      correctStorage: "접어서 서랍에 넣기"
+    },
+    {
+      id: "socksStorage",
+      text: "양말·속옷처럼 작은 옷",
+      correctStorage: "칸이 나뉜 서랍/작은 상자에 넣기"
+    },
+    {
+      id: "coatStorage",
+      text: "겨울에 입던 두꺼운 외투(지금은 여름)",
+      correctStorage: "계절 지난 옷 전용 보관함에 넣기"
+    }
+  ];
+
+  let practiceScore = 0;
+
+  // ===== 공통: 화면 전환 & 진행도 =====
+  function updateProgressBar() {
+    // 화면 0~4 중, 0은 intro이므로 1~4 기준으로 표시
+    let stepForProgress = currentStep === 0 ? 0 : currentStep;
+    const percent = (stepForProgress / totalSteps) * 100;
+    document.getElementById("progressBar").style.width = percent + "%";
+  }
+
+  function showScreen(id) {
+    const screens = document.querySelectorAll(".screen");
+    screens.forEach(s => s.classList.remove("active"));
+    document.getElementById(id).classList.add("active");
+    updateProgressBar();
+  }
+
+  function goToStep(step) {
+    currentStep = step;
+    if (step === 0) showScreen("screen-welcome");
+    if (step === 1) showScreen("screen-step1");
+    if (step === 2) showScreen("screen-step2");
+    if (step === 3) showScreen("screen-step3");
+    if (step === 4) {
+      generateSummary();
+      showScreen("screen-step4");
+    }
+  }
+
+  // ===== 1단계: 습관 체크 =====
+  function renderHabitSituation() {
+    const situation = habitSituations[habitIndex];
+    document.getElementById("habitIndexLabel").innerText =
+      `상황 ${habitIndex + 1} / ${habitSituations.length}`;
+    document.getElementById("habitText").innerText = situation.text;
+
+    const optionsDiv = document.getElementById("habitOptions");
+    optionsDiv.innerHTML = "";
+    situation.options.forEach((opt, idx) => {
+      const btn = document.createElement("button");
+      btn.className = "btn-outline";
+      btn.innerText = opt.label;
+      btn.onclick = () => selectHabitOption(idx);
+      optionsDiv.appendChild(btn);
+    });
+
+    document.getElementById("habitFeedback").innerText = "";
+    document.getElementById("habitFeedback").className = "feedback";
+
+    document.getElementById("habitScoreDisplay").innerText = habitScore + "점";
+    document.getElementById("habitProgressDisplay").innerText =
+      habitAnsweredCount + " / " + habitSituations.length;
+  }
+
+  function selectHabitOption(optionIndex) {
+    const situation = habitSituations[habitIndex];
+    const chosen = situation.options[optionIndex];
+
+    habitScore += chosen.score;
+    habitAnsweredCount += 1;
+
+    const feedbackEl = document.getElementById("habitFeedback");
+    feedbackEl.innerText = chosen.feedback;
+    feedbackEl.className = "feedback " + (chosen.good ? "good" : "bad");
+
+    document.getElementById("habitScoreDisplay").innerText = habitScore + "점";
+    document.getElementById("habitProgressDisplay").innerText =
+      habitAnsweredCount + " / " + habitSituations.length;
+
+    // 다음 상황으로 자동 이동(약간 지연)
+    if (habitIndex < habitSituations.length - 1) {
+      setTimeout(() => {
+        habitIndex += 1;
+        renderHabitSituation();
+      }, 700);
+    }
+  }
+
+  function resetHabits() {
+    habitIndex = 0;
+    habitScore = 0;
+    habitAnsweredCount = 0;
+    renderHabitSituation();
+  }
+
+  function goFromStep1ToNext() {
+    if (habitAnsweredCount < habitSituations.length) {
+      alert("모든 상황에 한 번씩 응답한 뒤에 다음 단계로 갈 수 있어요.");
+      return;
+    }
+    goToStep(2);
+  }
+
+  // ===== 2단계: 퀴즈 =====
+  function renderQuiz() {
+    const container = document.getElementById("quizContainer");
+    container.innerHTML = "";
+    quizQuestions.forEach((q, qIndex) => {
+      const card = document.createElement("div");
+      card.className = "card";
+
+      const qEl = document.createElement("div");
+      qEl.className = "quiz-question";
+      qEl.innerHTML = `문제 ${qIndex + 1}. ${q.text}`;
+      card.appendChild(qEl);
+
+      const optWrap = document.createElement("div");
+      optWrap.className = "quiz-options";
+
+      q.options.forEach((optText, optIndex) => {
+        const id = `quiz-${qIndex}-${optIndex}`;
+        const label = document.createElement("label");
+        const input = document.createElement("input");
+        input.type = "radio";
+        input.name = `quiz-${qIndex}`;
+        input.value = optIndex;
+        input.id = id;
+        input.onchange = () => {
+          quizAnswers[qIndex] = optIndex;
+        };
+
+        label.htmlFor = id;
+        label.appendChild(input);
+        label.insertAdjacentText("beforeend", " " + optText);
+
+        optWrap.appendChild(label);
+      });
+
+      card.appendChild(optWrap);
+      container.appendChild(card);
+    });
+  }
+
+  function gradeQuiz() {
+    let score = 0;
+    let answeredCount = 0;
+
+    quizQuestions.forEach((q, index) => {
+      if (quizAnswers[index] !== null) {
+        answeredCount++;
+        if (quizAnswers[index] === q.correctIndex) {
+          score++;
+        }
+      }
+    });
+
+    quizScore = score;
+    const resultEl = document.getElementById("quizResult");
+
+    if (answeredCount < quizQuestions.length) {
+      resultEl.innerHTML =
+        `<span class="quiz-wrong">아직 풀지 않은 문제가 있어요.</span> ` +
+        `현재까지 ${score} / ${quizQuestions.length}문제 정답입니다.`;
+    } else {
+      resultEl.innerHTML =
+        `<span class="quiz-correct">모든 문제를 풀었습니다!</span> ` +
+        `정답: ${score} / ${quizQuestions.length}문제`;
+    }
+  }
+
+  function goFromStep2ToNext() {
+    if (quizAnswers.some(a => a === null)) {
+      if (!confirm("풀지 않은 문제가 있어요. 그래도 다음 단계로 갈까요?")) {
+        return;
+      }
+    }
+    goToStep(3);
+  }
+
+  // ===== 3단계: 실천 시뮬레이션 =====
+  function renderPracticeTables() {
+    const stateBody = document.getElementById("stateTableBody");
+    stateBody.innerHTML = "";
+    stateItems.forEach(item => {
+      const tr = document.createElement("tr");
+      const tdText = document.createElement("td");
+      const tdSelect = document.createElement("td");
+      const tdNote = document.createElement("td");
+
+      tdText.innerText = item.text;
+
+      const select = document.createElement("select");
+      select.id = "state-" + item.id;
+      ["선택하세요", "세탁 필요", "보관 가능", "수선 필요"].forEach(optText => {
+        const opt = document.createElement("option");
+        opt.value = optText;
+        opt.textContent = optText;
+        select.appendChild(opt);
+      });
+
+      tdSelect.appendChild(select);
+      tdNote.innerHTML = "<span style='font-size:0.8rem; color:#6b7280;'>옷 상태를 잘 살펴보세요.</span>";
+
+      tr.appendChild(tdText);
+      tr.appendChild(tdSelect);
+      tr.appendChild(tdNote);
+      stateBody.appendChild(tr);
+    });
+
+    const storageBody = document.getElementById("storageTableBody");
+    storageBody.innerHTML = "";
+    storageItems.forEach(item => {
+      const tr = document.createElement("tr");
+      const tdText = document.createElement("td");
+      const tdSelect = document.createElement("td");
+      const tdNote = document.createElement("td");
+
+      tdText.innerText = item.text;
+
+      const select = document.createElement("select");
+      select.id = "storage-" + item.id;
+      [
+        "선택하세요",
+        "옷걸이에 걸기",
+        "접어서 서랍에 넣기",
+        "칸이 나뉜 서랍/작은 상자에 넣기",
+        "계절 지난 옷 전용 보관함에 넣기"
+      ].forEach(optText => {
+        const opt = document.createElement("option");
+        opt.value = optText;
+        opt.textContent = optText;
+        select.appendChild(opt);
+      });
+
+      tdSelect.appendChild(select);
+      tdNote.innerHTML = "<span style='font-size:0.8rem; color:#6b7280;'>종류와 용도를 생각해 보세요.</span>";
+
+      tr.appendChild(tdText);
+      tr.appendChild(tdSelect);
+      tr.appendChild(tdNote);
+      storageBody.appendChild(tr);
+    });
+
+    document.getElementById("practiceScoreDisplay").innerText = "0점";
+    document.getElementById("practiceFeedback").innerHTML = "<em>아직 채점하지 않았어요.</em>";
+    practiceScore = 0;
+  }
+
+  function gradePractice() {
+    let score = 0;
+    let maxScore = stateItems.length + storageItems.length;
+
+    // 상태 판단 채점
+    stateItems.forEach(item => {
+      const select = document.getElementById("state-" + item.id);
+      if (!select) return;
+      if (select.value === item.correctState) {
+        score++;
+      }
+    });
+
+    // 보관 방법 채점
+    storageItems.forEach(item => {
+      const select = document.getElementById("storage-" + item.id);
+      if (!select) return;
+      if (select.value === item.correctStorage) {
+        score++;
+      }
+    });
+
+    practiceScore = score;
+    document.getElementById("practiceScoreDisplay").innerText = score + "점 / " + maxScore + "점";
+
+    let feedback = "";
+    const ratio = score / maxScore;
+
+    if (ratio >= 0.8) {
+      feedback = "옷 상태도 잘 살피고, 보관 방법도 아주 잘 선택했어요! 지금처럼만 실천해도 훌륭해요.";
+    } else if (ratio >= 0.5) {
+      feedback = "기본적인 판단은 잘했어요. 틀린 부분은 왜 다른 선택이 더 좋은지 다시 한 번 교과서를 확인해 보면 좋아요.";
+    } else {
+      feedback = "조금 더 연습이 필요해요. 옷의 재질, 자주 입는지 여부, 잘 구겨지는지 등을 다시 떠올리며 다시 한 번 풀어 보세요.";
+    }
+
+    document.getElementById("practiceFeedback").innerText = feedback;
+  }
+
+  function goFromStep3ToNext() {
+    // 채점 안 해도 넘어갈 수는 있게 두되, 안내
+    if (practiceScore === 0) {
+      if (!confirm("아직 채점을 하지 않았거나, 점수가 0점이에요. 그래도 다음 단계로 갈까요?")) {
+        return;
+      }
+    }
+    goToStep(4);
+  }
+
+  // ===== 4단계: 리포트 =====
+  function generateSummary() {
+    // 요약 점수 표시
+    document.getElementById("summaryHabitScore").innerText = habitScore + "점";
+    document.getElementById("summaryQuizScore").innerText = quizScore + "점";
+    const maxPractice = stateItems.length + storageItems.length;
+    document.getElementById("summaryPracticeScore").innerText =
+      practiceScore + "점 / " + maxPractice + "점";
+
+    // 자동 리포트 텍스트 생성
+    const habitComment = getHabitComment();
+    const quizComment = getQuizComment();
+    const practiceComment = getPracticeComment();
+
+    const autoText =
+      "【나의 옷 관리 습관】\n" +
+      habitComment + "\n\n" +
+      "【옷 관리의 중요성 이해】\n" +
+      quizComment + "\n\n" +
+      "【옷 정리·보관 실천】\n" +
+      practiceComment + "\n\n" +
+      "【종합 정리】\n" +
+      "옷은 나의 위생과 건강을 지키고, 자원과 환경에도 큰 영향을 주는 자원입니다. " +
+      "이번 활동을 통해 옷을 세탁하고 정리·보관하는 방법을 다시 한 번 생각해 보았으며, " +
+      "앞으로는 옷을 더 소중히 다루고 오래 입기 위해 노력할 것입니다.";
+
+    document.getElementById("autoReport").innerText = autoText;
+
+    // 최종 리포트(다짐은 나중에 추가)
+    const finalText =
+      autoText +
+      "\n\n【앞으로의 옷 관리 다짐】\n" +
+      "(아직 다짐을 작성하지 않았습니다.)";
+
+    document.getElementById("finalReport").innerText = finalText;
+    document.getElementById("copyMessage").innerText = "";
+  }
+
+  function getHabitComment() {
+    if (habitScore >= 4) {
+      return "평소에 세탁 바구니에 잘 넣고, 세탁 전 상태를 살피는 등 옷 관리를 잘 실천하고 있습니다. " +
+             "앞으로도 지금과 같은 습관을 유지하면 옷을 깨끗하고 오래 입을 수 있습니다.";
+    } else if (habitScore >= 1) {
+      return "옷 관리를 위해 노력하는 모습이 보이지만, 가끔은 미루거나 아무 데나 두는 습관도 있습니다. " +
+             "세탁이 끝난 옷을 바로 널고, 옷을 제자리에 두는 습관을 더 들이면 좋겠습니다.";
+    } else {
+      return "옷을 벗은 뒤 아무 데나 두거나 세탁을 자주 미루는 등 개선이 필요한 부분이 있습니다. " +
+             "오늘 배운 내용을 바탕으로, 작은 습관부터 하나씩 바꾸어 나갈 필요가 있습니다.";
+    }
+  }
+
+  function getQuizComment() {
+    const total = quizQuestions.length;
+    if (quizScore === total) {
+      return "옷이 만들어지고 버려지는 과정에서 자원과 환경에 어떤 영향이 있는지 잘 이해하고 있습니다. " +
+             "옷을 오래 아껴 입는 것이 환경 보호에 도움이 된다는 점을 잘 알고 있습니다.";
+    } else if (quizScore >= Math.floor(total / 2)) {
+      return "옷 관리와 자원·환경의 관계를 어느 정도 이해하고 있지만, 일부 개념은 다시 확인할 필요가 있습니다. " +
+             "교과서의 그림과 설명을 다시 보며 복습하면 좋겠습니다.";
+    } else {
+      return "옷 관리의 이유(위생, 자원 절약, 환경 보호)에 대한 이해가 아직 부족합니다. " +
+             "옷 한 벌이 만들어지고 버려지는 과정을 다시 살펴보며, 왜 옷을 잘 관리해야 하는지 생각해 볼 필요가 있습니다.";
+    }
+  }
+
+  function getPracticeComment() {
+    const maxScore = stateItems.length + storageItems.length;
+    const ratio = practiceScore / maxScore;
+    if (ratio >= 0.8) {
+      return "옷의 상태를 잘 살피고, 종류와 용도에 맞게 알맞은 보관 방법을 선택할 수 있습니다. " +
+             "잘 구겨지는 옷은 옷걸이에, 잘 구겨지지 않는 옷은 서랍에, 양말·속옷은 작은 칸에 보관하는 등 실천 능력이 뛰어납니다.";
+    } else if (ratio >= 0.5) {
+      return "기본적인 세탁 필요 여부와 보관 방법은 어느 정도 바르게 선택할 수 있지만, " +
+             "일부 항목에서는 더 적절한 선택을 할 수 있습니다. 옷의 재질과 자주 입는 정도를 함께 생각해 보며 연습하면 좋겠습니다.";
+    } else {
+      return "옷 상태 판단과 보관 방법 선택에서 많이 어려움을 느끼고 있습니다. " +
+             "교과서의 예시를 참고하여, 어떤 옷을 옷걸이에 걸어야 하는지, 어떤 옷을 접어서 보관해야 하는지부터 다시 연습해 볼 필요가 있습니다.";
+    }
+  }
+
+  function updateFinalReport() {
+    const autoText = document.getElementById("autoReport").innerText;
+    const pledge = document.getElementById("pledgeText").value.trim();
+    let finalText = autoText + "\n\n【앞으로의 옷 관리 다짐】\n";
+
+    if (pledge) {
+      finalText += pledge;
+    } else {
+      finalText += "(아직 다짐을 작성하지 않았습니다.)";
+    }
+
+    document.getElementById("finalReport").innerText = finalText;
+  }
+
+  function copyReport() {
+    const text = document.getElementById("finalReport").innerText;
+    if (!navigator.clipboard) {
+      alert("이 브라우저에서는 자동 복사가 지원되지 않을 수 있습니다. 내용을 드래그해서 직접 복사해 주세요.");
+      return;
+    }
+    navigator.clipboard.writeText(text)
+      .then(() => {
+        document.getElementById("copyMessage").innerText = "리포트 내용이 클립보드에 복사되었습니다.";
+      })
+      .catch(() => {
+        document.getElementById("copyMessage").innerText = "복사에 실패했습니다. 직접 드래그해서 복사해 주세요.";
+      });
+  }
+
+  function restartAll() {
+    // 상태 초기화
+    habitIndex = 0;
+    habitScore = 0;
+    habitAnsweredCount = 0;
+    quizAnswers = new Array(quizQuestions.length).fill(null);
+    quizScore = 0;
+    practiceScore = 0;
+    document.getElementById("pledgeText").value = "";
+    document.getElementById("copyMessage").innerText = "";
+
+    renderHabitSituation();
+    renderQuiz();
+    renderPracticeTables();
+    goToStep(0);
+  }
+
+  // ===== 초기 렌더 =====
+  window.onload = function() {
+    renderHabitSituation();
+    renderQuiz();
+    renderPracticeTables();
+    updateProgressBar();
+  };
+</script>
+</body>
+</html>
