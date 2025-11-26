@@ -622,7 +622,7 @@
   let quizAnswers = new Array(quizQuestions.length).fill(null);
   let quizScore = 0;
 
-  // 3단계: 실천 시뮬 데이터 (상태 6개, 보관 6개)
+  // 3단계: 실천 시뮬 데이터
   const stateItems = [
     {
       id: "whiteShirt",
@@ -729,7 +729,7 @@
     const optionsDiv = document.getElementById("habitOptions");
     optionsDiv.innerHTML = "";
 
-    // 정답 위치 섞기: 옵션 인덱스 배열을 셔플
+    // 정답 위치 섞기
     const indices = situation.options.map((_, idx) => idx);
     for (let i = indices.length - 1; i > 0; i--) {
       const j = Math.floor(Math.random() * (i + 1));
@@ -757,7 +757,7 @@
   }
 
   function selectHabitOption(optionIndex) {
-    if (habitAnsweredCurrent) return; // 이미 답한 문제는 무시
+    if (habitAnsweredCurrent) return;
 
     const situation = habitSituations[habitIndex];
     const chosen = situation.options[optionIndex];
@@ -768,17 +768,15 @@
 
     const feedbackEl = document.getElementById("habitFeedback");
     feedbackEl.innerText = chosen.feedback;
-    feedbackEl.className = "feedback " + (chosen.good ? "good" : "bad";
+    feedbackEl.className = "feedback " + (chosen.good ? "good" : "bad");
 
     document.getElementById("habitScoreDisplay").innerText = habitScore + "점";
     document.getElementById("habitProgressDisplay").innerText =
       habitAnsweredCount + " / " + habitSituations.length;
 
-    // 선택 후 버튼 비활성화
     const buttons = document.querySelectorAll("#habitOptions button");
     buttons.forEach(b => b.disabled = true);
 
-    // 마지막 문제가 아니라면 '다음 상황으로' 버튼 보이기
     if (habitIndex < habitSituations.length - 1) {
       const nextRow = document.getElementById("habitNextRow");
       if (nextRow) nextRow.style.display = "flex";
@@ -851,9 +849,7 @@
   function computeQuizScore() {
     let score = 0;
     quizQuestions.forEach((q, index) => {
-      if (quizAnswers[index] === q.correctIndex) {
-        score++;
-      }
+      if (quizAnswers[index] === q.correctIndex) score++;
     });
     quizScore = score;
     return score;
@@ -862,31 +858,23 @@
   function gradeQuiz() {
     let score = computeQuizScore();
     let answeredCount = 0;
-
     quizQuestions.forEach((q, index) => {
-      if (quizAnswers[index] !== null) {
-        answeredCount++;
-      }
+      if (quizAnswers[index] !== null) answeredCount++;
     });
 
     const resultEl = document.getElementById("quizResult");
-
     if (answeredCount < quizQuestions.length) {
       resultEl.innerHTML =
-        `<span class="quiz-wrong">아직 풀지 않은 문제가 있어요.</span> ` +
-        `현재까지 ${score} / ${quizQuestions.length}문제 정답입니다.`;
+        `<span class="quiz-wrong">아직 풀지 않은 문제가 있어요.</span> 현재까지 ${score} / ${quizQuestions.length}문제 정답입니다.`;
     } else {
       resultEl.innerHTML =
-        `<span class="quiz-correct">모든 문제를 풀었습니다!</span> ` +
-        `정답: ${score} / ${quizQuestions.length}문제`;
+        `<span class="quiz-correct">모든 문제를 풀었습니다!</span> 정답: ${score} / ${quizQuestions.length}문제`;
     }
   }
 
   function goFromStep2ToNext() {
     if (quizAnswers.some(a => a === null)) {
-      if (!confirm("풀지 않은 문제가 있어요. 그래도 다음 단계로 갈까요?")) {
-        return;
-      }
+      if (!confirm("풀지 않은 문제가 있어요. 그래도 다음 단계로 갈까요?")) return;
     }
     goToStep(3);
   }
@@ -958,30 +946,22 @@
     let score = 0;
     let maxScore = stateItems.length + storageItems.length;
 
-    // 상태 판단 채점
     stateItems.forEach(item => {
       const select = document.getElementById("state-" + item.id);
-      if (!select) return;
-      if (select.value === item.correctState) {
-        score++;
-      }
+      if (select && select.value === item.correctState) score++;
     });
 
-    // 보관 방법 채점
     storageItems.forEach(item => {
       const select = document.getElementById("storage-" + item.id);
-      if (!select) return;
-      if (select.value === item.correctStorage) {
-        score++;
-      }
+      if (select && select.value === item.correctStorage) score++;
     });
 
     practiceScore = score;
-    document.getElementById("practiceScoreDisplay").innerText = score + "점 / " + maxScore + "점";
+    document.getElementById("practiceScoreDisplay").innerText =
+      score + "점 / " + maxScore + "점";
 
-    let feedback = "";
     const ratio = score / maxScore;
-
+    let feedback = "";
     if (ratio >= 0.8) {
       feedback = "옷 상태도 잘 살피고, 보관 방법도 아주 잘 선택했어요! 지금처럼만 실천해도 훌륭해요.";
     } else if (ratio >= 0.5) {
@@ -989,23 +969,19 @@
     } else {
       feedback = "조금 더 연습이 필요해요. 옷의 재질, 자주 입는지 여부, 잘 구겨지는지 등을 다시 떠올리며 다시 한 번 풀어 보세요.";
     }
-
     document.getElementById("practiceFeedback").innerText = feedback;
   }
 
   function goFromStep3ToNext() {
     if (practiceScore === 0) {
-      if (!confirm("아직 채점을 하지 않았거나, 점수가 0점이에요. 그래도 다음 단계로 갈까요?")) {
-        return;
-      }
+      if (!confirm("아직 채점을 하지 않았거나, 점수가 0점이에요. 그래도 다음 단계로 갈까요?")) return;
     }
     goToStep(4);
   }
 
   // ===== 4단계: 리포트 =====
   function generateSummary() {
-    // 퀴즈 점수 자동 재계산 (채점 버튼 안눌러도 반영)
-    computeQuizScore();
+    computeQuizScore(); // 이해 점수 자동 반영
 
     document.getElementById("summaryHabitScore").innerText = habitScore + "점";
     document.getElementById("summaryQuizScore").innerText = quizScore + "점";
@@ -1073,7 +1049,6 @@
     } else {
       text += "(아직 다짐을 작성하지 않았습니다.)";
     }
-
     return text;
   }
 
